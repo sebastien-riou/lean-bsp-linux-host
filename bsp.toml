@@ -1,0 +1,35 @@
+[bsp]
+name = "linux-host"
+lean_bsp_contract_version = "1.0"    # version of the app_*/bsp_* contract this BSP implements
+version = "0.1.0"
+description = "Run/debug apps as a native Linux process"
+maintainer = "sebastien.riou@pqshield.com"
+entry_point = "bsp_cli.py"
+
+[bsp.hardware]
+flash_bytes = 0
+ram_bytes = 0
+
+[bsp.build]
+backend = "custom"                   # bsp_cli.py drives the host compiler directly
+requires_tools = ["gcc"]             # used by `lean-bsp doctor`; CC overrides the compiler
+
+[bsp.primitives]
+uart = true                          # UART 0: stdin/stdout, or a pseudo-terminal with run --detach
+led = false
+button = false
+cpu_cycle_counter = true             # counts nanoseconds of CLOCK_MONOTONIC
+cpu_frequency = true                 # 1 GHz, the rate of that counter
+cache_clear = false
+heap_usage = true                    # allocations made by the application's and BSP's own code
+flash_read = false
+flash_erase = false
+flash_write = false
+
+[[bsp.targets]]
+name = "native"
+cpu = "native"                       # deliberately no CPU architecture: whatever machine you are on
+toolchain = "gcc"
+cflags = []
+linker_fragments = []
+run_mode = "native-process"
