@@ -16,7 +16,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 TARGET = 'native'
-WRAPPED = ('malloc', 'free', 'calloc', 'realloc')  # heap high-water mark, see src/bsp_heap.c
+WRAPPED = ('malloc', 'calloc', 'realloc', 'free')  # heap use, counted by lean-bsp's src/bsp_heap.c
+HEAP_BLOCKS = 4096  # live blocks the count can follow: a host application may hold more than a board's
 STATE = 'linux-host.json'  # this BSP's own record of what it built, in the build directory
 
 
@@ -46,7 +47,7 @@ def cmd_build(args) -> int:
     cc = os.environ.get('CC', 'gcc')
     cflags = shlex.split(os.environ.get('CFLAGS', '-Og -g'))
     warnings = ['-Wall', '-Wextra']
-    bsp_flags = [*cflags, *warnings, f'-I{ROOT / "include"}']
+    bsp_flags = [*cflags, *warnings, f'-I{ROOT / "include"}', f'-DLEAN_BSP_HEAP_MAX_BLOCKS={HEAP_BLOCKS}']
     app_flags = [*bsp_flags, *(f'-I{d}' for d in app['include_dirs']), *(f'-D{d}' for d in app['defines'])]
     units = [(src, bsp_flags) for src in sorted((ROOT / 'src').glob('*.c'))]
     units += [(Path(src), app_flags) for src in app['sources']]
@@ -58,7 +59,7 @@ def cmd_build(args) -> int:
             return result('error', message=f'compiling {src} failed')
         objects.append(str(obj))
     exe = bdir / app['name']
-    libs = [app['lib']] if app.get('lib') else []
+    libs = [*app.get('link_flags', []), app['lib']] if app.get('lib') else []  # an archive of its own ([app.build])
     link = [cc, *cflags, *objects, *libs, '-pthread', *(f'-Wl,--wrap={f}' for f in WRAPPED), '-o', str(exe)]
     if not echo_run(link):
         return result('error', message='linking failed')

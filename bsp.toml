@@ -1,6 +1,6 @@
 [bsp]
 name = "linux-host"
-lean_bsp_contract_version = "1.1"    # version of the app_*/bsp_* contract this BSP implements
+lean_bsp_contract_version = "1.5"    # version of the app_*/bsp_* contract this BSP implements
 version = "0.1.0"
 description = "Run/debug apps as a native Linux process"
 maintainer = "sebastien.riou@pqshield.com"
@@ -21,7 +21,7 @@ button = false
 cpu_cycle_counter = true             # counts nanoseconds of CLOCK_MONOTONIC
 cpu_frequency = true                 # 1 GHz, the rate of that counter
 cache_clear = false
-heap_usage = true                    # allocations made by the application's and BSP's own code
+heap_usage = true                    # bytes requested by the application's and BSP's own code (src/bsp_heap.c)
 flash_read = false
 flash_erase = false
 flash_write = false
@@ -29,6 +29,7 @@ flash_write = false
 [[bsp.targets]]
 name = "native"
 cpu = "native"                       # deliberately no CPU architecture: whatever machine you are on
+                                     # (and, being a native process, no [bsp.mcu] either)
 toolchain = "gcc"
 cflags = []
 linker_fragments = []
